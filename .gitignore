@@ -1,0 +1,41 @@
+# ===================== #
+# Python (backend)
+# ===================== #
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+backend/venv/
+*.sqlite3
+instance/
+*.log
+
+# Flask & uploads
+backend/uploads/
+backend/.env
+
+# ===================== #
+# Node (frontend)
+# ===================== #
+node_modules/
+dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ===================== #
+# IDE & Editor
+# ===================== #
+.vscode/
+.idea/
+*.iml
+
+# ===================== #
+# OS Files
+# ===================== #
+.DS_Store
+Thumbs.db
