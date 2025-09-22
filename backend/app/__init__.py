@@ -1,6 +1,9 @@
 from flask import Flask, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+from flask_jwt_extended import JWTManager
 
+jwt = JWTManager()  # 初始化JWT扩展
 db = SQLAlchemy()
 
 def create_app():
@@ -9,10 +12,15 @@ def create_app():
     app.config.from_object("config.Config")
 
     db.init_app(app)
+    migrate = Migrate(app, db)  # 初始化迁移扩展
+    jwt.init_app(app)
 
     # 蓝图注册
     from .routes.tasks import tasks_bp
     app.register_blueprint(tasks_bp, url_prefix="/tasks")
+
+    from .routes.user import users_bp
+    app.register_blueprint(users_bp, url_prefix='/user')
 
     # 根路径重定向
     @app.route('/')

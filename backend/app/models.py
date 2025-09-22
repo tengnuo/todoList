@@ -6,16 +6,16 @@ class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)  # 存储哈希
+    password_hash = db.Column(db.Text, nullable=False)  # 存储哈希
     gender = db.Column(db.String(10))
     age = db.Column(db.Integer)
     avatar = db.Column(db.String(200))
     tasks = db.relationship('Task', backref='user', lazy=True)
 
-    def setPassword(self, password):
+    def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
-    def checkPassword(self, password):
+    def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
 class Task(db.Model):
