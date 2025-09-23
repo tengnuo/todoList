@@ -25,6 +25,6 @@ def create_app():
     # 根路径重定向
     @app.route('/')
     def index():
-        return redirect(url_for('tasks.getTasks'))
+        return redirect(url_for('tasks.get_tasks'))
 
     return app

@@ -27,4 +27,4 @@ class Task(db.Model):
     due_date = db.Column(db.DateTime)
     completed = db.Column(db.Boolean, default = False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow())
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)

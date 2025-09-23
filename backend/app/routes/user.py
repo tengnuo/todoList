@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 from ..models import User, db
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from datetime import timedelta
+from werkzeug.security import generate_password_hash, check_password_hash
 
 users_bp = Blueprint("users", __name__)
 
@@ -45,6 +46,7 @@ def login():
     access_token = create_access_token(identity=str(user.id), expires_delta=timedelta(days=1))
     return jsonify({ "access_token": access_token}), 200
 
+# 查看个人信息
 @users_bp.route('/profile', methods=['GET'])
 @jwt_required()
 def get_user_profile():
@@ -61,6 +63,7 @@ def get_user_profile():
         "age": user.age
     }), 200
 
+# 信息更新
 @users_bp.route('/update', methods=['PUT'])
 @jwt_required()
 def update_user_profile():
@@ -80,5 +83,20 @@ def update_user_profile():
 
     return jsonify({"message": "个人信息修改成功"}), 200
 
-
+# 修改密码
+@users_bp.route('/password', methods=['PUT'])
+@jwt_required()
+def change_password():
+    user_id = int(get_jwt_identity())
+    user = User.query.get(user_id)
+    data = request.get_json()
+    old_pw = data.get("old_password")
+    new_pw = data.get("new_password")
+    if not old_pw or not new_pw:
+        return jsonify({"error": "请输入旧密码或新密码"})
+    if not check_password_hash(user.password_hash, old_pw):
+        return jsonify({"error": "旧密码不正确"})
+    user.password_hash = generate_password_hash(new_pw)
+    db.session.commit()
+    return jsonify({"message": "密码修改成功"})
 

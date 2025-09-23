@@ -1,13 +1,17 @@
 from flask import Blueprint, jsonify, request
-from ..models import Task, db
+from ..models import Task, db, User
 from datetime import datetime
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 tasks_bp = Blueprint("tasks", __name__)
 
 # 显示所有事项
 @tasks_bp.route("/query/all", methods=['GET'])
-def getTasks():
-    tasks = Task.query.all()
+@jwt_required()
+def get_tasks():
+    user_id = int(get_jwt_identity())
+    user = User.query.get(user_id)
+    tasks = user.tasks
     return jsonify([
         {
             "id": t.id,
@@ -23,8 +27,10 @@ def getTasks():
 
 # 获取单个任务
 @tasks_bp.route('/query/<int:task_id>', methods=['GET'])
-def getTask(task_id):
-    task = Task.query.get(task_id)
+@jwt_required()
+def get_task(task_id):
+    user_id = int(get_jwt_identity())
+    task = Task.query.filter_by(id=task_id, user_id=user_id).first()
     if not task:
         return jsonify({"error": "Task not found"}), 404
     return jsonify({
@@ -40,19 +46,21 @@ def getTask(task_id):
 
 # 添加事项
 @tasks_bp.route('/add', methods=['POST'])
+@jwt_required()
 def addTask():
+    user_id = int(get_jwt_identity())
     data = request.get_json()
     # 判断是否添加为空
     if not data or "title" not in data:
         return jsonify({"error": "请输入任务标题"})
 
     task = Task(
-        title = data["title"],  # title必填项
-        description = data.get('description'),
-        priority = data.get('priority', "低"),
-        due_date = datetime.strptime(data.get('due_date'), '%Y-%m-%d') if data.get('due_date') else None,
-        completed = False,
-        user_id = 1
+        title=data["title"],  # title必填项
+        description=data.get('description'),
+        priority=data.get('priority', "低"),
+        due_date=datetime.strptime(data.get('due_date'), '%Y-%m-%d') if data.get('due_date') else None,
+        completed=False,
+        user_id=user_id
     )
     db.session.add(task)
     db.session.commit()
@@ -64,8 +72,9 @@ def addTask():
 # 更新任务事项
 @tasks_bp.route('/update/<int:task_id>', methods=['PUT'])
 def updateTask(task_id):
+    user_id = int(get_jwt_identity())
     # 先查询待更改任务
-    task = Task.query.get(task_id)
+    task = Task.query.filter_by(id=task_id, user_id=user_id).first()
     if not task:
         return jsonify({"error": 'Task not found'}), 404
 
@@ -85,7 +94,8 @@ def updateTask(task_id):
 # 删除任务
 @tasks_bp.route("/delete/<int:task_id>", methods=['DELETE'])
 def deleteTask(task_id):
-    task = Task.query.get(task_id)
+    user_id = int(get_jwt_identity())
+    task = Task.query.filter_by(id=task_id, user_id=user_id).first()
     if not task:
         return jsonify({"error": "Task not found"}), 404
     db.session.delete(task)
