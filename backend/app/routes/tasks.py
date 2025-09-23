@@ -5,6 +5,13 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 tasks_bp = Blueprint("tasks", __name__)
 
+# 返回统一格式
+def resp_success(msg="成功", data=None):
+    return jsonify({"code": 0, "msg": msg, "data": data}), 200
+
+def resp_error(msg="失败"):
+    return jsonify({"code": 1, "msg": msg, "data": None}), 400
+
 # 显示所有事项
 @tasks_bp.route("/query/all", methods=['GET'])
 @jwt_required()
@@ -12,7 +19,7 @@ def get_tasks():
     user_id = int(get_jwt_identity())
     user = User.query.get(user_id)
     tasks = user.tasks
-    return jsonify([
+    return resp_success(data=[
         {
             "id": t.id,
             "title": t.title,
@@ -22,8 +29,7 @@ def get_tasks():
             "completed": t.completed,
             "created_at": t.created_at.strftime("%Y-%m-%d %H:%M:%S") if t.created_at else None,
             "user_id": t.user_id
-        } for t in tasks
-    ]), 200
+        } for t in tasks])
 
 # 获取单个任务
 @tasks_bp.route('/query/<int:task_id>', methods=['GET'])
@@ -33,7 +39,7 @@ def get_task(task_id):
     task = Task.query.filter_by(id=task_id, user_id=user_id).first()
     if not task:
         return jsonify({"error": "Task not found"}), 404
-    return jsonify({
+    return resp_success(data={
         "id": task.id,
         "title": task.title,
         "description": task.description,
@@ -42,7 +48,7 @@ def get_task(task_id):
         "completed": task.completed,
         "created_at": task.created_at.strftime("%Y-%m-%d %H:%M:%S") if task.created_at else None,
         "user_id": task.user_id
-    }), 200
+    })
 
 # 添加事项
 @tasks_bp.route('/add', methods=['POST'])
@@ -64,10 +70,7 @@ def addTask():
     )
     db.session.add(task)
     db.session.commit()
-    return jsonify({
-        "message": "Task added",
-        "id": task.id
-    }), 201
+    return resp_success(data={"id": task.id}, msg="任务添加成功")
 
 # 更新任务事项
 @tasks_bp.route('/update/<int:task_id>', methods=['PUT'])
@@ -76,11 +79,11 @@ def updateTask(task_id):
     # 先查询待更改任务
     task = Task.query.filter_by(id=task_id, user_id=user_id).first()
     if not task:
-        return jsonify({"error": 'Task not found'}), 404
+        return resp_error('Task not found')
 
     data = request.get_json()
     if not data:
-        return jsonify({"error": '请求不能为空'}), 400
+        return resp_error('请求不能为空')
     task.title = data.get("title", task.title)
     task.description = data.get("description", task.description)
     task.priority = data.get("priority", task.priority)
@@ -89,7 +92,7 @@ def updateTask(task_id):
     task.completed = data.get('completed', task.completed)
 
     db.session.commit()
-    return jsonify({"message": "任务更新成功"}), 200
+    return resp_success("任务更新成功"), 200
 
 # 删除任务
 @tasks_bp.route("/delete/<int:task_id>", methods=['DELETE'])
@@ -97,10 +100,10 @@ def deleteTask(task_id):
     user_id = int(get_jwt_identity())
     task = Task.query.filter_by(id=task_id, user_id=user_id).first()
     if not task:
-        return jsonify({"error": "Task not found"}), 404
+        return resp_error("Task not found"), 404
     db.session.delete(task)
     db.session.commit()
-    return jsonify({"message": "删除成功"}), 200
+    return resp_success("任务删除成功"), 200
 
 
 
