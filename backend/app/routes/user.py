@@ -44,7 +44,7 @@ def login():
 
     # 创建 JWT token,有效期一天
     access_token = create_access_token(identity=str(user.id), expires_delta=timedelta(days=1))
-    return jsonify({ "access_token": access_token}), 200
+    return jsonify({"token": access_token}), 200
 
 # 查看个人信息
 @users_bp.route('/profile', methods=['GET'])

@@ -2,12 +2,14 @@ from flask import Flask, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
+from flask_cors import CORS
 
 jwt = JWTManager()  # 初始化JWT扩展
 db = SQLAlchemy()
 
 def create_app():
     app = Flask(__name__)
+    CORS(app)
     app.json.ensure_ascii = False  # 解决中文乱码问题
     app.config.from_object("config.Config")
 
