@@ -45,7 +45,6 @@ export default{
         }
     },
     created() {
-        console.log('token', this.$store.getters['user/token'])
         this.getTasks()
     },
     methods: {

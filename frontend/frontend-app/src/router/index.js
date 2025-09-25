@@ -15,7 +15,7 @@ const router = new VueRouter({
             component: Layout,
             redirect: "/tasks",
             children: [
-                { path: "/tasks", component: Task},
+                { path: "/tasks", component: Task,  meta: { requiresAuth: true }},
                 { path: '/user', component: User}
             ]
         },
@@ -29,7 +29,7 @@ const router = new VueRouter({
 // 路由守卫：没有 token 不能访问任务页
 router.beforeEach((to, from, next) => {
     const token = localStorage.getItem("token");
-    if (to.path === "/login" && !token) {
+    if (to.meta.requiresAuth && !token) {
       next("/user/login");
     } else {
       next();
