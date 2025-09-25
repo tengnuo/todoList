@@ -1,7 +1,7 @@
 import Vue from "vue"
 import VueRouter from "vue-router"
 import Router from "vue-router"
-import Home from "@/views/layout/home.vue"
+import Task from "@/views/layout/task.vue"
 import User from "@/views/layout/user.vue"
 import Layout from "@/views/layout"
 
@@ -13,17 +13,27 @@ const router = new VueRouter({
         {
             path: '/',
             component: Layout,
-            redirect: "home",
+            redirect: "/tasks",
             children: [
-                { path: "home", component: Home},
-                { path: 'user', component: User}
+                { path: "/tasks", component: Task},
+                { path: '/user', component: User}
             ]
         },
         {
-            path: "/login",
+            path: "/user/login",
             component: ()=>import("@/views/login/index.vue")
         }
     ]
 })
+
+// 路由守卫：没有 token 不能访问任务页
+router.beforeEach((to, from, next) => {
+    const token = localStorage.getItem("token");
+    if (to.path === "/login" && !token) {
+      next("/user/login");
+    } else {
+      next();
+    }
+  });
 
 export default router

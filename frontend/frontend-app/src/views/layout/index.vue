@@ -3,7 +3,7 @@
         <h2>TodoList</h2>
         <router-view></router-view>
         <el-tabs v-model="activeName" @tab-click="handleClick" tab-position="bottom" class="bottom-tabs">
-            <el-tab-pane label="首页" name="home"></el-tab-pane>
+            <el-tab-pane label="我的任务" name="tasks"></el-tab-pane>
             <el-tab-pane label="用户管理" name="user"></el-tab-pane>
         </el-tabs>
     </div>
@@ -14,7 +14,7 @@ export default {
     name: 'LayoutIndex',
     data() {
       return {
-        activeName: 'home'
+        activeName: 'tasks'
       };
     },
     methods: {
