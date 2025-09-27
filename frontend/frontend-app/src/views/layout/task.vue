@@ -55,16 +55,11 @@
                     <el-input v-model="newTask.description"></el-input>
                 </el-form-item>
                 <el-form-item label="优先级">
-                    <el-dropdown @command="handlePriority">
-                        <span class="el-dropdown-link">
-                            {{ newTask.priority || '请选择优先级' }}<i class="el-icon-arrow-down el-icon--right"></i>
-                        </span>
-                        <el-dropdown-menu slot="dropdown">
-                            <el-dropdown-item command="高">高</el-dropdown-item>
-                            <el-dropdown-item command="中">中</el-dropdown-item>
-                            <el-dropdown-item command="低">低</el-dropdown-item>
-                        </el-dropdown-menu>
-                    </el-dropdown>
+                    <el-select v-model="newTask.priority" placeholder="请选择优先级">
+                        <el-option label="高" value="高" />
+                        <el-option label="中" value="中" />
+                        <el-option label="低" value="低" />
+                    </el-select>
                 </el-form-item>
                 <el-form-item label="截止日期">
                     <el-date-picker
@@ -75,15 +70,10 @@
                     />
                 </el-form-item>
                 <el-form-item label="完成状态">
-                    <el-dropdown @command="handleCompleted">
-                        <span class="el-dropdown-link">
-                            {{ newTask.completed ? '已完成' : '未完成' }}<i class="el-icon-arrow-down el-icon--right"></i>
-                        </span>
-                        <el-dropdown-menu slot="dropdown">
-                            <el-dropdown-item :command='true'>已完成</el-dropdown-item>
-                            <el-dropdown-item :command='false'>未完成</el-dropdown-item>
-                        </el-dropdown-menu>
-                    </el-dropdown>
+                    <el-select v-model="newTask.completed" placeholder="请选择优先级">
+                        <el-option label="未完成" :value=false />
+                        <el-option label="已完成" :value=true />
+                    </el-select>
                 </el-form-item>
             </el-form>
             <template #footer>
@@ -94,7 +84,14 @@
             </template>
         </el-dialog>
 
-
+        <el-col :span="24" class="toolbar" style="text-align:center">
+            <el-pagination
+                @current-change="handleCurrentChange"
+                layout="total, prev, pager, next"
+                :page-size="pagesize"
+                :total="sortTasks.length"
+            ></el-pagination>
+        </el-col>
 
     </div>
 </template>
@@ -119,7 +116,8 @@ export default{
                 due_date: '',
                 completed: false
             },
-
+            currentPage: 1, // 默认第一页
+            pagesize: 9, //设置每页显示条目个数为10
             rules : {
                 title: [
                     { required: true, message: '请输入任务名称', trigger: 'blur' }
@@ -139,27 +137,38 @@ export default{
             const res = await request.get('/tasks/query/all')
             this.tasks = res.data.data
         },
+        handleCompleted(row) {
+            request.put(`/tasks/update/${row.id}`, row)
+            this.getTasks()
+        },
         async saveTask() {
+            // 如果是编辑模式
             if (this.isEdit) {
                 await request.put(`/tasks/update/${this.editId}`, this.newTask)
-                this.getTasks()
-                this.centerDialogVisible = false
-            }
+                this.$message.success('编辑成功');
+            } 
+            // 如果是添加模式
             else{
                 if (this.newTask.title == ''){
                     alert('任务名称不能为空')
                     return 
                 }
                 await request.post('/tasks/add', this.newTask)
-                this.getTasks()
-                this.centerDialogVisible = false
+                this.$message.success('添加成功');
             }
-        },
-        handlePriority(value) {
-            this.newTask.priority = value
-        },
-        handleCompleted(value) {
-            this.newTask.completed = value
+            await this.getTasks(); // 刷新任务列表
+            this.centerDialogVisible = false; // 关闭弹窗
+
+            // 重置表单
+            this.newTask.title = '';
+            this.newTask.description = '';
+            this.newTask.priority = '';
+            this.newTask.due_date = '';
+            this.newTask.completed = false;
+
+            // 重置编辑状态
+            this.isEdit = false;
+            this.editId = null;
         },
         async handleDelete(id) {
             await request.delete(`/tasks/delete/${id}`)
@@ -168,17 +177,20 @@ export default{
         async handleEdit(row) {
             this.isEdit = true
             this.editId = row.id
-            this.newTask = {...row}
+            Object.assign(this.newTask, row); // 将任务数据复制到表单
             this.centerDialogVisible = true
         },
         handleCurrentChange(curPage) {
-            this.page = curPage
+            this.currentPage = curPage
         }
     },
     computed: {
-
         sortTasks() {
-            let filteredTasks = this.tasks.filter(task => 
+            let curTasks = this.tasks.slice(
+                (this.currentPage - 1) * this.pagesize,
+                this.currentPage * this.pagesize
+            )
+            let filteredTasks = curTasks.filter(task => 
             !this.search || task.title.toLowerCase().includes(this.search.toLowerCase()))
 
             return filteredTasks.sort((a, b)=>{
