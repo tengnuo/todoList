@@ -2,7 +2,7 @@
     <div>
         <el-row><el-button type="primary" round @click="centerDialogVisible = true">添加任务</el-button></el-row>
         <el-table
-            :data="sortTasks"
+            :data="pageTasks"
             style="width: 100%; margin-top: 20px"
             :row-class-name="tableRowClassName"
             row-key="id">
@@ -14,7 +14,12 @@
             ></el-table-column>
             <el-table-column label="标题" prop="title"></el-table-column>
             <el-table-column label="描述" prop="description"></el-table-column>
-            <el-table-column label="优先级" prop="priority"></el-table-column>
+            <el-table-column 
+            label="优先级" 
+            prop="priority" 
+            :filters="[{ text: '高', value: '高' }, { text: '中', value: '中' }, { text: '低', value: '低' }]"
+            :filter-method="filterPriority">
+            </el-table-column>
             <el-table-column label="截止日期" prop="due_date" sortable></el-table-column>
             <el-table-column label="完成状态" prop="completed">
                 <template #default="{row}">
@@ -46,6 +51,20 @@
             </el-table-column>
         </el-table>
 
+        <!-- 分页 -->
+        <el-row>
+            <el-col :span="24" class="toolbar" style="text-align:center">
+                <el-pagination
+                    @current-change="handleCurrentChange"
+                    layout="total, prev, pager, next"
+                    :page-size="pagesize"
+                    :total="sortTasks.length"
+                ></el-pagination>
+            </el-col>
+        </el-row>
+        
+
+        <!-- 添加/编辑任务弹出框 -->
         <el-dialog destroy-on-close :visible.sync="centerDialogVisible" :title="!isEdit ? '添加任务' : '编辑任务'" width="500" center draggable>
             <el-form :inline="true" :model="newTask" :rules="rules" label-width="120px">
                 <el-form-item label="任务名称" prop="title">
@@ -84,14 +103,7 @@
             </template>
         </el-dialog>
 
-        <el-col :span="24" class="toolbar" style="text-align:center">
-            <el-pagination
-                @current-change="handleCurrentChange"
-                layout="total, prev, pager, next"
-                :page-size="pagesize"
-                :total="sortTasks.length"
-            ></el-pagination>
-        </el-col>
+
 
     </div>
 </template>
@@ -105,7 +117,6 @@ export default{
         return {
             tasks:[],
             search:'',
-            tempSearch: '',
             centerDialogVisible: false,  // 控制弹窗显示
             isEdit: false,  // 判断是否是编辑模式
             editId: null,
@@ -131,7 +142,7 @@ export default{
     methods: {
         tableRowClassName({row}) {
             // 当任务完成时，返回completed类名
-            return row.completed ? 'completed' : ''
+            return row.completed ? 'completed' : 'uncompleted'
         },
         async getTasks(){
             const res = await request.get('/tasks/query/all')
@@ -182,15 +193,15 @@ export default{
         },
         handleCurrentChange(curPage) {
             this.currentPage = curPage
+        },
+        filterPriority(value, row) {
+            return row.priority === value
         }
     },
     computed: {
+
         sortTasks() {
-            let curTasks = this.tasks.slice(
-                (this.currentPage - 1) * this.pagesize,
-                this.currentPage * this.pagesize
-            )
-            let filteredTasks = curTasks.filter(task => 
+            let filteredTasks = this.tasks.filter(task => 
             !this.search || task.title.toLowerCase().includes(this.search.toLowerCase()))
 
             return filteredTasks.sort((a, b)=>{
@@ -199,6 +210,11 @@ export default{
                 }
                 return a.completed ? 1 : -1
             })
+        },
+        pageTasks(){
+            let start = (this.currentPage - 1) * this.pagesize
+            let end = this.currentPage * this.pagesize
+            return this.sortTasks.slice(start, end)
         }
     }
 
@@ -217,5 +233,9 @@ export default{
     background-color: #f5f7fa;
     text-decoration: line-through;
     color: gray;
+  }
+
+  ::v-deep .uncompleted {
+    color: #000;
   }
 </style>
