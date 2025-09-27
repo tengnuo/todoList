@@ -74,6 +74,7 @@ def addTask():
 
 # 更新任务事项
 @tasks_bp.route('/update/<int:task_id>', methods=['PUT'])
+@jwt_required()
 def updateTask(task_id):
     user_id = int(get_jwt_identity())
     # 先查询待更改任务
@@ -92,18 +93,19 @@ def updateTask(task_id):
     task.completed = data.get('completed', task.completed)
 
     db.session.commit()
-    return resp_success("任务更新成功"), 200
+    return resp_success("任务更新成功")
 
 # 删除任务
 @tasks_bp.route("/delete/<int:task_id>", methods=['DELETE'])
+@jwt_required()
 def deleteTask(task_id):
     user_id = int(get_jwt_identity())
     task = Task.query.filter_by(id=task_id, user_id=user_id).first()
     if not task:
-        return resp_error("Task not found"), 404
+        return resp_error("Task not found")
     db.session.delete(task)
     db.session.commit()
-    return resp_success("任务删除成功"), 200
+    return resp_success("任务删除成功")
 
 
 
