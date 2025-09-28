@@ -4,7 +4,7 @@
       <input v-model="username" placeholder="用户名" />
       <input v-model="password" type="password" placeholder="密码" />
       <button @click="login">登录</button>
-      <p>没有账号？<router-link to="/register">去注册</router-link></p>
+      <p>没有账号？<router-link to="/user/register">去注册</router-link></p>
     </div>
   </template>
   
@@ -27,9 +27,10 @@
             password: this.password
           });
           this.$store.commit('user/setUserInfo', { token: res.data.token } )
-          this.$router.push("/tasks");
+          this.$router.replace("/tasks");
         } catch (err) {
-          alert("登录失败，请检查用户名或密码");
+          const errMsg = err.response.data.error
+          alert(errMsg);
         }
       }
     }

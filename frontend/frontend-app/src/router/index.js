@@ -11,17 +11,21 @@ const router = new VueRouter({
     mode: "history",
     routes: [
         {
-            path: '/',
-            component: Layout,
-            redirect: "/tasks",
-            children: [
-                { path: "/tasks", component: Task,  meta: { requiresAuth: true }},
-                { path: '/user', component: User}
-            ]
+          path: '/',
+          component: Layout,
+          redirect: "/tasks",
+          children: [
+              { path: "/tasks", component: Task,  meta: { requiresAuth: true }},
+              { path: '/user', component: User}
+          ]
         },
         {
-            path: "/user/login",
-            component: ()=>import("@/views/login/index.vue")
+          path: "/user/login",
+          component: ()=>import("@/views/login/index.vue")
+        },
+        {
+          path: '/user/register',
+          component: ()=>import('@/views/register/index.vue')
         }
     ]
 })
