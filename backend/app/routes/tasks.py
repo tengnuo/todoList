@@ -65,7 +65,7 @@ def addTask():
         description=data.get('description'),
         priority=data.get('priority', "低"),
         due_date=datetime.strptime(data.get('due_date'), '%Y-%m-%d') if data.get('due_date') else None,
-        completed=False,
+        completed=data.get('completed'),
         user_id=user_id
     )
     db.session.add(task)

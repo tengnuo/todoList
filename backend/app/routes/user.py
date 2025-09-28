@@ -18,7 +18,7 @@ def register():
         return jsonify({
             "error": "用户名已存在"
         }), 400
-    user = User(username = data["username"])
+    user = User(username=data["username"])
     user.set_password(data['password'])
     db.session.add(user)
     db.session.commit()
@@ -73,6 +73,10 @@ def update_user_profile():
     data = request.get_json()
     if not data:
         return jsonify({"error": "请求不能为空"}), 400
+
+    # 检查用户名是否存在
+    if User.query.filter_by(username=data["username"]).first():
+        return jsonify({"error": "用户名已存在"}), 400
 
     user.username = data.get("username", user.username)
     user.avatar = data.get("avatar", user.avatar)
