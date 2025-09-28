@@ -16,7 +16,7 @@ const router = new VueRouter({
           redirect: "/tasks",
           children: [
               { path: "/tasks", component: Task,  meta: { requiresAuth: true }},
-              { path: '/user', component: User}
+              { path: '/user/profile', component: User}
           ]
         },
         {

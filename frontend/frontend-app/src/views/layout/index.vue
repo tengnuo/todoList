@@ -3,8 +3,16 @@
         <h2>TodoList</h2>
         <router-view></router-view>
         <el-tabs v-model="activeName" @tab-click="handleClick" tab-position="bottom" class="bottom-tabs">
-            <el-tab-pane label="我的任务" name="tasks"></el-tab-pane>
-            <el-tab-pane label="用户管理" name="user"></el-tab-pane>
+            <el-tab-pane label="我的任务" name="tasks">
+              <span slot="label">
+                <i class="el-icon-s-data">我的任务</i>
+              </span>
+            </el-tab-pane>
+            <el-tab-pane label="用户管理" name="user/profile">
+              <span slot="label">
+                    <i class="el-icon-user-solid">用户管理</i>
+              </span>
+            </el-tab-pane>
         </el-tabs>
     </div>
 </template>

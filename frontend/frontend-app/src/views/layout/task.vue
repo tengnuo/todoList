@@ -110,12 +110,12 @@
 
 <script>
 import request from '@/utils/request'
+import { mapState } from 'vuex'
 
 export default{
     name: 'TaskIndex',
     data(){
         return {
-            tasks:[],
             search:'',
             centerDialogVisible: false,  // 控制弹窗显示
             isEdit: false,  // 判断是否是编辑模式
@@ -137,16 +137,12 @@ export default{
         }
     },
     created() {
-        this.getTasks()
+        this.$store.dispatch('tasks/fetchTasks')
     },
     methods: {
         tableRowClassName({row}) {
             // 当任务完成时，返回completed类名
             return row.completed ? 'completed' : 'uncompleted'
-        },
-        async getTasks(){
-            const res = await request.get('/tasks/query/all')
-            this.tasks = res.data.data
         },
         handleCompleted(row) {
             request.put(`/tasks/update/${row.id}`, row)
@@ -199,7 +195,7 @@ export default{
         }
     },
     computed: {
-
+        ...mapState('tasks', ['tasks']),
         sortTasks() {
             let filteredTasks = this.tasks.filter(task => 
             !this.search || task.title.toLowerCase().includes(this.search.toLowerCase()))
