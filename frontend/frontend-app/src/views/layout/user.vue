@@ -19,7 +19,8 @@
                         </div>
                     </div>
                     <div class="btn">
-                        <el-button icon="el-icon-edit" type="text" round @click="handleEdit">修改信息</el-button>
+                        <el-button icon="el-icon-edit" type="primary" round @click="handleEdit">修改信息</el-button>
+                        <el-button type="text" icon="el-icon-switch-button" @click="logout">退出登录</el-button>
                     </div>
                 </el-card>
             </el-col>
@@ -115,7 +116,7 @@ export default{
                 disabledDate(time) {
                     return time.getTime() > Date.now()
                 }
-            },
+            }
         }
     },
     created(){
@@ -153,6 +154,25 @@ export default{
         handleEdit() {
             Object.assign(this.newInfo, this.userInfo) // 将用户信息复制到表单中
             this.centerDialogVisible = true
+        },
+        logout(){
+            this.$confirm('退出登录?', '提示', {
+                confirmButtonText: '确定退出',
+                cancelButtonText: '取消退出',
+                type: 'info'
+            }).then(() => {
+                this.$message({
+                    type: 'success',
+                    message: '退出登录'
+                });
+                this.$store.dispatch('user/logout')
+                this.$router.replace('/user/login')
+            }).catch(() => {
+            this.$message({
+                type: 'info',
+                message: '取消退出'
+            });          
+            });
         }
     },
     computed: {
@@ -216,5 +236,8 @@ export default{
 }
 .el-carousel__item:nth-child(2n+1) {
 background-color: #FFDAB9;
+}
+.btn >>> .el-button{
+    margin: 0 20px
 }
 </style>

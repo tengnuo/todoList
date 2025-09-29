@@ -14,7 +14,12 @@ export default {
             setInfo(obj)
         }
     },
-    actions: {},
+    actions: {
+        logout(context) {
+            context.commit('setUserInfo', {})
+            localStorage.removeItem('token')
+        }
+    },
     getters: {
         token(state) {
             return state.userInfo.token
