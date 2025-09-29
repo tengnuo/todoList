@@ -37,6 +37,7 @@
                     v-model="search"
                     size="mini"
                     placeholder="输入关键字搜索"
+                    @input="handleSearch"
                     />
                 </template>
                 <template slot-scope="scope">
@@ -102,9 +103,6 @@
                 </span>
             </template>
         </el-dialog>
-
-
-
     </div>
 </template>
 
@@ -117,6 +115,7 @@ export default{
     data(){
         return {
             search:'',
+            timer: null, // 定时器
             centerDialogVisible: false,  // 控制弹窗显示
             isEdit: false,  // 判断是否是编辑模式
             editId: null,
@@ -141,6 +140,15 @@ export default{
         this.$store.dispatch('tasks/fetchTasks')
     },
     methods: {
+        handleSearch(){
+            // 添加防抖逻辑
+            if (this.timer) {
+                clearTimeout(this.timer)
+            }
+            this.timer = setTimeout(() => {
+                console.log('搜索', this.search);
+            }, 300)
+        },
         tableRowClassName({row}) {
             // 当任务完成时，返回completed类名
             return row.completed ? 'completed' : 'uncompleted'
