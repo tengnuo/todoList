@@ -8,7 +8,8 @@ class User(db.Model):
     username = db.Column(db.String(50), unique=True, nullable=False)
     password_hash = db.Column(db.Text, nullable=False)  # 存储哈希
     gender = db.Column(db.String(10))
-    age = db.Column(db.Integer)
+    # age = db.Column(db.Integer)
+    birth_date = db.Column(db.Date)
     avatar = db.Column(db.String(200))
     tasks = db.relationship('Task', backref='user', lazy=True)
 

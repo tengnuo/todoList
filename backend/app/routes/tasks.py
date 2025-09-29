@@ -38,7 +38,7 @@ def get_task(task_id):
     user_id = int(get_jwt_identity())
     task = Task.query.filter_by(id=task_id, user_id=user_id).first()
     if not task:
-        return jsonify({"error": "Task not found"}), 404
+        return resp_error("Task not found"), 404
     return resp_success(data={
         "id": task.id,
         "title": task.title,
@@ -58,7 +58,7 @@ def addTask():
     data = request.get_json()
     # 判断是否添加为空
     if not data or "title" not in data:
-        return jsonify({"error": "请输入任务标题"})
+        return resp_error("请输入任务标题")
 
     task = Task(
         title=data["title"],  # title必填项
@@ -70,7 +70,15 @@ def addTask():
     )
     db.session.add(task)
     db.session.commit()
-    return resp_success(data={"id": task.id}, msg="任务添加成功")
+    return resp_success(data={
+        "id": task.id,
+        "title": task.title,  # title必填项
+        "description": task.description,
+        "priority": task.priority,
+        "due_date": task.due_date.strftime('%Y-%m-%d') if task.due_date else None,
+        "completed": task.completed,
+        "user_id": task.user_id
+    }, msg="任务添加成功")
 
 # 更新任务事项
 @tasks_bp.route('/update/<int:task_id>', methods=['PUT'])
@@ -80,7 +88,7 @@ def updateTask(task_id):
     # 先查询待更改任务
     task = Task.query.filter_by(id=task_id, user_id=user_id).first()
     if not task:
-        return resp_error('Task not found')
+        return resp_error('任务不存在')
 
     data = request.get_json()
     if not data:
@@ -93,7 +101,15 @@ def updateTask(task_id):
     task.completed = data.get('completed', task.completed)
 
     db.session.commit()
-    return resp_success("任务更新成功")
+    return resp_success(data={
+        "id": task.id,
+        "title": task.title,  # title必填项
+        "description": task.description,
+        "priority": task.priority,
+        "due_date": task.due_date.strftime('%Y-%m-%d'),
+        "completed": task.completed,
+        "user_id": task.user_id
+    },msg="任务更新成功")
 
 # 删除任务
 @tasks_bp.route("/delete/<int:task_id>", methods=['DELETE'])
@@ -102,7 +118,7 @@ def deleteTask(task_id):
     user_id = int(get_jwt_identity())
     task = Task.query.filter_by(id=task_id, user_id=user_id).first()
     if not task:
-        return resp_error("Task not found")
+        return resp_error("任务不存在")
     db.session.delete(task)
     db.session.commit()
     return resp_success("任务删除成功")
