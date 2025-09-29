@@ -66,7 +66,7 @@
 
         <!-- 添加/编辑任务弹出框 -->
         <el-dialog destroy-on-close :visible.sync="centerDialogVisible" :title="!isEdit ? '添加任务' : '编辑任务'" width="500" center draggable>
-            <el-form :inline="true" :model="newTask" :rules="rules" label-width="120px">
+            <el-form :inline="true" ref="taskForm" :model="newTask" :rules="rules" label-width="120px">
                 <el-form-item label="任务名称" prop="title">
                     <el-input v-model="newTask.title" placeholder="请输入新任务"></el-input>
                 </el-form-item>
@@ -121,6 +121,7 @@ export default{
             isEdit: false,  // 判断是否是编辑模式
             editId: null,
             newTask: {             // 表单数据
+                id: null,
                 title: '',
                 description: '',
                 priority: '',
@@ -145,41 +146,31 @@ export default{
             return row.completed ? 'completed' : 'uncompleted'
         },
         handleCompleted(row) {
-            request.put(`/tasks/update/${row.id}`, row)
-            this.getTasks()
+            request.put(`/tasks/update/${row.id}`, row)  
         },
-        async saveTask() {
-            // 如果是编辑模式
-            if (this.isEdit) {
-                await request.put(`/tasks/update/${this.editId}`, this.newTask)
-                this.$message.success('编辑成功');
-            } 
-            // 如果是添加模式
-            else{
-                if (this.newTask.title == ''){
-                    alert('任务名称不能为空')
-                    return 
+        saveTask() {
+            this.$refs.taskForm.validate((valid) => {
+                if (valid) {
+                    // 如果是编辑模式
+                    if (this.isEdit) {
+                        this.$store.dispatch('tasks/editTask', this.newTask)
+                    } 
+                    // 如果是添加模式
+                    else{
+                        this.$store.dispatch('tasks/addTask', this.newTask)
+                    }
+                    this.centerDialogVisible = false; // 关闭弹窗
+                    // 重置编辑状态
+                    this.isEdit = false;
+                    this.editId = null;
+                    // 重置表单
+                    this.$refs.taskForm.resetFields();
                 }
-                await request.post('/tasks/add', this.newTask)
-                this.$message.success('添加成功');
-            }
-            await this.getTasks(); // 刷新任务列表
-            this.centerDialogVisible = false; // 关闭弹窗
+            })
 
-            // 重置表单
-            this.newTask.title = '';
-            this.newTask.description = '';
-            this.newTask.priority = '';
-            this.newTask.due_date = '';
-            this.newTask.completed = false;
-
-            // 重置编辑状态
-            this.isEdit = false;
-            this.editId = null;
         },
         async handleDelete(id) {
-            await request.delete(`/tasks/delete/${id}`)
-            this.getTasks()
+            this.$store.dispatch('tasks/deleteTask', id)
         },
         async handleEdit(row) {
             this.isEdit = true
